@@ -2129,14 +2129,14 @@ def calculate_periodwise_2hr_mape_distribution(input_df):
         [
             (
                 (period_df["hour"] >= 6.5)
-                & (period_df["hour"] <= 10.5)
+                & (period_df["hour"] <= 9.5)
             ),
             (
-                (period_df["hour"] > 10.5)
-                & (period_df["hour"] <= 14.5)
+                (period_df["hour"] >= 10.5)
+                & (period_df["hour"] <= 13.5)
             ),
             (
-                (period_df["hour"] > 14.5)
+                (period_df["hour"] >= 14.5)
                 & (period_df["hour"] <= 17.5)
             )
         ],
@@ -2173,9 +2173,9 @@ def calculate_periodwise_2hr_mape_distribution(input_df):
 
     # Morning, noon and evening distributions
     period_time_ranges = {
-        "Morning": "06:30–10:30",
-        "Noon": "11:30–14:30",
-        "Evening": "15:30–17:30"
+        "Morning": "06:30–09:30",
+        "Noon": "10:30–13:30",
+        "Evening": "14:30–17:30"
     }
 
     for period_name, period_time_range in period_time_ranges.items():
