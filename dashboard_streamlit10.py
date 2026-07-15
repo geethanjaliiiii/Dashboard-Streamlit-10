@@ -2271,7 +2271,7 @@ if (
     # =====================================================
 
     timeslot_col, overall_col = st.columns(
-        [2.2, 1],
+        [1, 1],
         gap="large"
     )
 
@@ -2406,6 +2406,19 @@ if (
     with overall_col:
 
         with st.container(border=True):
+            st.markdown(
+                """
+                <div style="
+                    font-size:1.30rem;
+                    font-weight:700;
+                    margin-top:2px;
+                    margin-bottom:8px;
+                ">
+                    🎯 Overall MAPE Distribution
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
             overall_information = (
                 periodwise_mape_results["Overall"]
