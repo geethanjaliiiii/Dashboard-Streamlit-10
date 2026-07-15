@@ -530,9 +530,9 @@ else:
                     marker=dict(color=GFS_COLOR)
                 ))
 
-                actual_2hr_plot_df = actual_until_previous_hour_df[
-                actual_until_previous_hour_df["valid_time_ist"]
-                <= two_hour_end_time
+            actual_plot_df = day_df[
+                (day_df["valid_time_ist"] >= selected_datetime) &
+                (day_df["valid_time_ist"] <= previous_hour_time)
             ].copy()
             
             if not actual_2hr_plot_df.empty:
