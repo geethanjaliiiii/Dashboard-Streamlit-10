@@ -348,7 +348,7 @@ else:
                 "valid_time_ist": "Time",
                 "Actual_GHI": "Actual GHI",
                 "GFS_GHI": "GFS GHI",
-                "Daily_Forecast_GHI": "Intraday Forecast GHI",,
+                "Daily_Forecast_GHI": "Intraday Forecast GHI",
                 "Two_Hour_Ahead_Forecast": "2-Hour Ahead Forecast GHI"
             }
 
