@@ -2175,11 +2175,9 @@ def create_mape_distribution_pie(
             textposition="auto",
 
            
-=====================================================
-
-ROW 1: FULL-WIDTH TIME-SLOT-WISE MAPE
-
-=====================================================
+#=====================================================
+#ROW 1: FULL-WIDTH TIME-SLOT-WISE MAPE
+#=====================================================
 
 if not timeslot_2hr_mape_performance.empty:
 
@@ -2305,11 +2303,9 @@ with st.container(border=True):
 
 else:st.warning("Not enough valid 2-hour-ahead forecast data is available ""to calculate time-slot-wise MAPE.")
 
-=====================================================
-
-FUNCTION FOR PERIOD-WISE DONUT CHART
-
-=====================================================
+#=====================================================
+#FUNCTION FOR PERIOD-WISE DONUT CHART
+#=====================================================
 
 def create_mape_distribution_pie(distribution_df,total_predictions,period_title,time_range):
 
@@ -2405,11 +2401,9 @@ fig.update_layout(
 
 return fig
 
-=====================================================
-
-ROW 2: OVERALL, MORNING, NOON AND EVENING PIE CHARTS
-
-=====================================================
+#=====================================================
+#ROW 2: OVERALL, MORNING, NOON AND EVENING PIE CHARTS
+#=====================================================
 
 if periodwise_mape_results:
 
