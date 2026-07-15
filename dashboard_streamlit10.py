@@ -2138,43 +2138,7 @@ def calculate_periodwise_2hr_mape_distribution(input_df):
     periodwise_mape_start,
     periodwise_mape_end
 ) = calculate_periodwise_2hr_mape_distribution(df)
-
-# =====================================================
-# FUNCTION FOR MAPE DISTRIBUTION DONUT CHART
-# Keep this above the MAPE analysis display section
-# =====================================================
-
-def create_mape_distribution_pie(
-    distribution_df,
-    total_predictions,
-    period_title,
-    time_range
-):
-    fig = go.Figure()
-
-    fig.add_trace(
-        go.Pie(
-            labels=distribution_df["MAPE Range"],
-            values=distribution_df["Number of Predictions"],
-
-            hole=0.48,
-
-            marker=dict(
-                colors=MAPE_DISTRIBUTION_COLORS,
-                line=dict(
-                    color="white",
-                    width=2
-                )
-            ),
-
-            texttemplate=(
-                "<b>%{label}</b><br>"
-                "%{percent:.1%}"
-            ),
-
-            textposition="auto",
-
-           
+          
 # =====================================================
 # ROW 1: FULL-WIDTH TIME-SLOT-WISE MAPE
 # =====================================================
