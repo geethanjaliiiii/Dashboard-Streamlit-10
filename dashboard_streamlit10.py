@@ -278,7 +278,7 @@ else:
         x=day_df["valid_time_ist"],
         y=day_df["Daily_Forecast_GHI"],
         mode="lines+markers",
-        name="Daily Forecast GHI",
+        name="Intraday Forecast GHI",
         line=dict(color=DAILY_FORECAST_COLOR, width=2),
         marker=dict(color=DAILY_FORECAST_COLOR),
          fill="tozeroy",
@@ -348,7 +348,7 @@ else:
                 "valid_time_ist": "Time",
                 "Actual_GHI": "Actual GHI",
                 "GFS_GHI": "GFS GHI",
-                "Daily_Forecast_GHI": "Day Ahead Forecast GHI",
+                "Daily_Forecast_GHI": "Intraday Forecast GHI",,
                 "Two_Hour_Ahead_Forecast": "2-Hour Ahead Forecast GHI"
             }
 
@@ -451,7 +451,7 @@ else:
                 x=day_df["valid_time_ist"],
                 y=day_df["Daily_Forecast_GHI"],
                 mode="lines+markers",
-                name="Daily Forecast GHI",
+                name="Intraday Forecast GHI",
                 line=dict(color=DAILY_FORECAST_COLOR),
                 marker=dict(color=DAILY_FORECAST_COLOR)
 
@@ -505,7 +505,7 @@ else:
                     x=two_hour_df["valid_time_ist"],
                     y=two_hour_df["Daily_Forecast_GHI"],
                     mode="lines+markers",
-                    name="Daily Forecast GHI",
+                    name="Intraday Forecast GHI",
                     line=dict(color=DAILY_FORECAST_COLOR),
                     marker=dict(color=DAILY_FORECAST_COLOR)
                 ))
@@ -658,7 +658,7 @@ else:
                     x=previous_df["valid_time_ist"],
                     y=previous_df["Daily_Forecast_GHI"],
                     mode="lines+markers",
-                    name="Daily Forecast GHI",
+                    name="Intraday Forecast GHI",
                     line=dict(color=DAILY_FORECAST_COLOR),
                     marker=dict(color=DAILY_FORECAST_COLOR)
                 ))
@@ -740,7 +740,7 @@ else:
                         x=previous_two_hour_df["valid_time_ist"],
                         y=previous_two_hour_df["Daily_Forecast_GHI"],
                         mode="lines+markers",
-                        name="Daily Forecast GHI",
+                        name="Intraday Forecast GHI",
                         line=dict(color=DAILY_FORECAST_COLOR),
                         marker=dict(color=DAILY_FORECAST_COLOR)
                     ))
@@ -863,7 +863,7 @@ else:
         mape_after = ((actual - after).abs() / actual).mean() * 100
 
         show_section_heading(
-            title="Cumulative Performance of Daily Forecast",
+            title="Cumulative Performance of Intraday Forecast",
             start_date=start_date,
             end_date=end_date,
             icon="📊",
@@ -878,7 +878,7 @@ else:
             fig_mape = go.Figure()
 
             fig_mape.add_trace(go.Bar(
-                x=["Raw GFS", "Daily Forecast"],
+                x=["Raw GFS", "Intraday Forecast"],
                 y=[mape_before, mape_after],
                 text=[round(mape_before, 2), round(mape_after, 2)],
                 textposition="auto",
@@ -903,7 +903,7 @@ else:
             fig_mae = go.Figure()
 
             fig_mae.add_trace(go.Bar(
-                x=["Raw GFS", "Daily Forecast"],
+                x=["Raw GFS", "Intraday Forecast"],
                 y=[mae_before, mae_after],
                 text=[round(mae_before, 2), round(mae_after, 2)],
                 textposition="auto",
@@ -928,7 +928,7 @@ else:
             fig_rmse = go.Figure()
 
             fig_rmse.add_trace(go.Bar(
-                x=["Raw GFS", "Daily Forecast"],
+                x=["Raw GFS", "Intraday Forecast"],
                 y=[rmse_before, rmse_after],
                 text=[round(rmse_before, 2), round(rmse_after, 2)],
                 textposition="auto",
@@ -1076,7 +1076,7 @@ else:
 
         comparison_labels = [
             "Raw GFS",
-            "Daily Forecast",
+            "Intraday Forecast",
             "2 Hour Ahead"
         ]
 
@@ -1384,7 +1384,7 @@ else:
             with st.container(border=True):
 
                 show_section_heading(
-                    title="Daily Forecast",
+                    title="Intraday Forecast",
                     start_date=daily_start_date,
                     end_date=daily_end_date,
                     icon="📈",
@@ -1400,7 +1400,7 @@ else:
                         color:inherit;
                         margin-bottom:2px;
                     ">
-                        Comparison of Actual GHI, GFS and Daily Forecast GHI
+                        Comparison of Actual GHI, GFS and Intraday Forecast GHI
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -1420,7 +1420,7 @@ else:
                             "1.40rem"
                         ),
                         (
-                            "Actual vs Daily Forecast",
+                            "Actual vs Intraday Forecast",
                             f"{overall_mape_after:.2f}%",
                             DAILY_FORECAST_COLOR,
                             "2.15rem"
@@ -1440,7 +1440,7 @@ else:
                             "1.40rem"
                         ),
                         (
-                            "Actual vs Daily Forecast",
+                            "Actual vs Intraday Forecast",
                             f"{overall_mae_after:.2f}",
                             DAILY_FORECAST_COLOR,
                             "2.15rem"
@@ -1460,7 +1460,7 @@ else:
                             "1.40rem"
                         ),
                         (
-                            "Actual vs Daily Forecast",
+                            "Actual vs Intraday Forecast",
                             f"{overall_rmse_after:.2f}",
                             DAILY_FORECAST_COLOR,
                             "2.15rem"
