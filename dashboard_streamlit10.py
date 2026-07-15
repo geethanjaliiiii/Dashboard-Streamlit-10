@@ -2434,6 +2434,7 @@ if (
                         total_predictions=overall_information[
                             "total"
                         ],
+                        period_title="",
                         time_range=overall_information[
                             "time_range"
                         ]
