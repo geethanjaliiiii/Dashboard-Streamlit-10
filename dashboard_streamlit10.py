@@ -2138,7 +2138,111 @@ def calculate_periodwise_2hr_mape_distribution(input_df):
     periodwise_mape_start,
     periodwise_mape_end
 ) = calculate_periodwise_2hr_mape_distribution(df)
-          
+
+
+# =====================================================
+# FUNCTION FOR PERIOD-WISE DONUT CHART
+# This function must be above the pie-chart display code
+# =====================================================
+
+def create_mape_distribution_pie(
+    distribution_df,
+    total_predictions,
+    period_title,
+    time_range
+):
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Pie(
+            labels=distribution_df["MAPE Range"],
+            values=distribution_df["Number of Predictions"],
+
+            hole=0.48,
+
+            marker=dict(
+                colors=MAPE_DISTRIBUTION_COLORS,
+                line=dict(
+                    color="white",
+                    width=2
+                )
+            ),
+
+            texttemplate=(
+                "<b>%{label}</b><br>"
+                "%{percent:.1%}"
+            ),
+
+            textposition="auto",
+
+            insidetextfont=dict(
+                size=10,
+                color="white"
+            ),
+
+            hovertemplate=(
+                "<b>%{label}</b><br>"
+                "Predictions: %{value}<br>"
+                "Share: %{percent:.2%}"
+                "<extra></extra>"
+            ),
+
+            sort=False,
+            direction="clockwise",
+            pull=[0.025, 0, 0, 0, 0],
+            automargin=True,
+            showlegend=False
+        )
+    )
+
+    fig.update_layout(
+        title=dict(
+            text=(
+                f"<b>{period_title}</b><br>"
+                f"<span style='font-size:12px;'>"
+                f"{time_range}"
+                f"</span>"
+            ),
+            x=0.5,
+            xanchor="center",
+            font=dict(size=17)
+        ),
+
+        height=410,
+        showlegend=False,
+
+        annotations=[
+            dict(
+                text=(
+                    f"<b>{total_predictions}</b><br>"
+                    "<span style='font-size:10px;'>"
+                    "Predictions"
+                    "</span>"
+                ),
+                x=0.5,
+                y=0.5,
+                showarrow=False,
+                align="center",
+                font=dict(size=18)
+            )
+        ],
+
+        margin=dict(
+            l=15,
+            r=15,
+            t=65,
+            b=20
+        ),
+
+        uniformtext=dict(
+            minsize=8,
+            mode="hide"
+        )
+    )
+
+    return fig
+    
 # =====================================================
 # MAPE ANALYSIS DISPLAY
 # ROW 1: TIME-SLOT-WISE MAPE + OVERALL DISTRIBUTION
