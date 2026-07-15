@@ -530,13 +530,14 @@ else:
                     marker=dict(color=GFS_COLOR)
                 ))
 
-                actual_plot_df = day_df[
-                    (day_df["valid_time_ist"] >= selected_datetime) &
-                    (day_df["valid_time_ist"] <= previous_hour_time)
-                ].copy()
+                actual_2hr_plot_df = day_df[
+                    day_df["valid_time_ist"] <= previous_hour_time
+                ].dropna(
+                    subset=["Actual_GHI"]
+                ).copy()
             
                 if not actual_2hr_plot_df.empty:
-                
+            
                     fig3.add_trace(go.Scatter(
                         x=actual_2hr_plot_df["valid_time_ist"],
                         y=actual_2hr_plot_df["Actual_GHI"],
@@ -547,9 +548,7 @@ else:
                             dash="dot",
                             width=2
                         ),
-                        marker=dict(
-                            color=ACTUAL_COLOR
-                        )
+                        marker=dict(color=ACTUAL_COLOR)
                     ))
 
                 fig3.add_trace(go.Scatter(
