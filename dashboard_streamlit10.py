@@ -2914,9 +2914,25 @@ if (
         top_margin="20px",
         bottom_margin="10px"
     )
-
+    
+    st.markdown(
+        """
+        <div style="
+            font-size:0.95rem;
+            color:inherit;
+            margin-top:-4px;
+            margin-bottom:12px;
+        ">
+            <b>Positive Bias:</b> Forecast GHI &gt; Actual GHI (Overprediction)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <b>Negative Bias:</b> Forecast GHI &lt; Actual GHI (Underprediction)
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
     with st.container(border=True):
-
+    
         positive_col, negative_col = st.columns(
             2,
             gap="large"
