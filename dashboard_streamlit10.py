@@ -2140,288 +2140,265 @@ def calculate_periodwise_2hr_mape_distribution(input_df):
 ) = calculate_periodwise_2hr_mape_distribution(df)
           
 # =====================================================
-# ROW 1: FULL-WIDTH TIME-SLOT-WISE MAPE
+# MAPE ANALYSIS DISPLAY
+# ROW 1: TIME-SLOT-WISE MAPE + OVERALL DISTRIBUTION
+# ROW 2: MORNING + NOON + EVENING DISTRIBUTIONS
 # =====================================================
 
-if not timeslot_2hr_mape_performance.empty:
+if (
+    not timeslot_2hr_mape_performance.empty
+    and periodwise_mape_results
+):
 
     show_section_heading(
-        title="Time-Slot-Wise MAPE of 2-Hour Ahead Forecast",
-        start_date=timeslot_2hr_mape_start,
-        end_date=timeslot_2hr_mape_end,
-        icon="⏱️",
+        title="MAPE Analysis of 2-Hour Ahead Forecast",
+        start_date=periodwise_mape_start,
+        end_date=periodwise_mape_end,
+        icon="🎯",
         heading_size="1.5rem",
         top_margin="18px",
         bottom_margin="10px"
     )
 
-    with st.container(border=True):
+    # =====================================================
+    # ROW 1
+    # LEFT: TIME-SLOT-WISE MAPE
+    # RIGHT: OVERALL MAPE DISTRIBUTION
+    # =====================================================
 
-        fig_timeslot_2hr_mape = go.Figure()
+    timeslot_col, overall_col = st.columns(
+        [2.2, 1],
+        gap="large"
+    )
 
-        fig_timeslot_2hr_mape.add_trace(
-            go.Bar(
-                x=timeslot_2hr_mape_performance[
-                    "Time_Slot"
-                ],
-                y=timeslot_2hr_mape_performance[
-                    "Time_Slot_MAPE"
-                ],
+    # ---------------- TIME-SLOT-WISE MAPE ----------------
+    with timeslot_col:
 
-                marker=dict(
-                    color=TWO_HOUR_COLOR,
-                    line=dict(
-                        color="#1F7A1F",
-                        width=1.2
-                    )
-                ),
+        with st.container(border=True):
 
-                text=[
-                    f"{value:.2f}%"
-                    for value in
-                    timeslot_2hr_mape_performance[
+            st.markdown(
+                """
+                <div style="
+                    font-size:1.30rem;
+                    font-weight:700;
+                    margin-top:2px;
+                    margin-bottom:8px;
+                ">
+                    ⏱️ Time-Slot-Wise MAPE
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            fig_timeslot_2hr_mape = go.Figure()
+
+            fig_timeslot_2hr_mape.add_trace(
+                go.Bar(
+                    x=timeslot_2hr_mape_performance[
+                        "Time_Slot"
+                    ],
+                    y=timeslot_2hr_mape_performance[
                         "Time_Slot_MAPE"
-                    ]
-                ],
+                    ],
 
-                textposition="outside",
-                cliponaxis=False,
+                    marker=dict(
+                        color=TWO_HOUR_COLOR,
+                        line=dict(
+                            color="#1F7A1F",
+                            width=1.2
+                        )
+                    ),
 
-                customdata=timeslot_2hr_mape_performance[
-                    "Prediction_Count"
-                ],
+                    text=[
+                        f"{value:.2f}%"
+                        for value in
+                        timeslot_2hr_mape_performance[
+                            "Time_Slot_MAPE"
+                        ]
+                    ],
 
-                hovertemplate=(
-                    "<b>Time: %{x}</b><br>"
-                    "Average MAPE: %{y:.2f}%<br>"
-                    "Predictions: %{customdata}"
-                    "<extra></extra>"
-                ),
+                    textposition="outside",
+                    cliponaxis=False,
 
-                showlegend=False
-            )
-        )
+                    customdata=timeslot_2hr_mape_performance[
+                        "Prediction_Count"
+                    ],
 
-        maximum_timeslot_mape = (
-            timeslot_2hr_mape_performance[
-                "Time_Slot_MAPE"
-            ].max()
-        )
+                    hovertemplate=(
+                        "<b>Time: %{x}</b><br>"
+                        "Average MAPE: %{y:.2f}%<br>"
+                        "Predictions: %{customdata}"
+                        "<extra></extra>"
+                    ),
 
-        timeslot_mape_ymax = (
-            maximum_timeslot_mape * 1.22
-            if (
-                pd.notna(maximum_timeslot_mape)
-                and maximum_timeslot_mape > 0
-            )
-            else 10
-        )
-
-        ordered_time_slots = (
-            timeslot_2hr_mape_performance[
-                "Time_Slot"
-            ].tolist()
-        )
-
-        fig_timeslot_2hr_mape.update_layout(
-            xaxis_title="Time",
-            yaxis_title="MAPE (%)",
-            height=480,
-            bargap=0.25,
-            showlegend=False,
-            margin=dict(
-                l=55,
-                r=30,
-                t=35,
-                b=65
-            )
-        )
-
-        fig_timeslot_2hr_mape.update_xaxes(
-            type="category",
-            categoryorder="array",
-            categoryarray=ordered_time_slots,
-            tickmode="array",
-            tickvals=ordered_time_slots,
-            ticktext=ordered_time_slots,
-            tickangle=0,
-            fixedrange=True
-        )
-
-        fig_timeslot_2hr_mape.update_yaxes(
-            range=[0, timeslot_mape_ymax],
-            rangemode="tozero",
-            fixedrange=True
-        )
-
-        st.plotly_chart(
-            fig_timeslot_2hr_mape,
-            width="stretch",
-            key="timeslot_2hr_mape_full_width",
-            config={
-                "displayModeBar": False,
-                "staticPlot": True,
-                "responsive": True
-            }
-        )
-
-else:
-    st.warning(
-        "Not enough valid 2-hour-ahead forecast data is available "
-        "to calculate time-slot-wise MAPE."
-    )
-
-
-# =====================================================
-# FUNCTION FOR PERIOD-WISE DONUT CHART
-# This function must be above the pie-chart display code
-# =====================================================
-
-def create_mape_distribution_pie(
-    distribution_df,
-    total_predictions,
-    period_title,
-    time_range
-):
-
-    fig = go.Figure()
-
-    fig.add_trace(
-        go.Pie(
-            labels=distribution_df["MAPE Range"],
-            values=distribution_df["Number of Predictions"],
-
-            hole=0.48,
-
-            marker=dict(
-                colors=MAPE_DISTRIBUTION_COLORS,
-                line=dict(
-                    color="white",
-                    width=2
+                    showlegend=False
                 )
-            ),
-
-            texttemplate=(
-                "<b>%{label}</b><br>"
-                "%{percent:.1%}"
-            ),
-
-            textposition="auto",
-
-            insidetextfont=dict(
-                size=10,
-                color="white"
-            ),
-
-            hovertemplate=(
-                "<b>%{label}</b><br>"
-                "Predictions: %{value}<br>"
-                "Share: %{percent:.2%}"
-                "<extra></extra>"
-            ),
-
-            sort=False,
-            direction="clockwise",
-            pull=[0.025, 0, 0, 0, 0],
-            automargin=True,
-            showlegend=False
-        )
-    )
-
-    fig.update_layout(
-        title=dict(
-            text=(
-                f"<b>{period_title}</b><br>"
-                f"<span style='font-size:12px;'>"
-                f"{time_range}"
-                f"</span>"
-            ),
-            x=0.5,
-            xanchor="center",
-            font=dict(size=17)
-        ),
-
-        height=410,
-        showlegend=False,
-
-        annotations=[
-            dict(
-                text=(
-                    f"<b>{total_predictions}</b><br>"
-                    "<span style='font-size:10px;'>"
-                    "Predictions"
-                    "</span>"
-                ),
-                x=0.5,
-                y=0.5,
-                showarrow=False,
-                align="center",
-                font=dict(size=18)
             )
-        ],
 
-        margin=dict(
-            l=15,
-            r=15,
-            t=65,
-            b=20
-        ),
+            maximum_timeslot_mape = (
+                timeslot_2hr_mape_performance[
+                    "Time_Slot_MAPE"
+                ].max()
+            )
 
-        uniformtext=dict(
-            minsize=8,
-            mode="hide"
-        )
+            timeslot_mape_ymax = (
+                maximum_timeslot_mape * 1.22
+                if (
+                    pd.notna(maximum_timeslot_mape)
+                    and maximum_timeslot_mape > 0
+                )
+                else 10
+            )
+
+            ordered_time_slots = (
+                timeslot_2hr_mape_performance[
+                    "Time_Slot"
+                ].tolist()
+            )
+
+            fig_timeslot_2hr_mape.update_layout(
+                xaxis_title="Time",
+                yaxis_title="MAPE (%)",
+                height=440,
+                bargap=0.25,
+                showlegend=False,
+                margin=dict(
+                    l=55,
+                    r=25,
+                    t=35,
+                    b=55
+                )
+            )
+
+            fig_timeslot_2hr_mape.update_xaxes(
+                type="category",
+                categoryorder="array",
+                categoryarray=ordered_time_slots,
+                tickmode="array",
+                tickvals=ordered_time_slots,
+                ticktext=ordered_time_slots,
+                tickangle=0,
+                fixedrange=True
+            )
+
+            fig_timeslot_2hr_mape.update_yaxes(
+                range=[0, timeslot_mape_ymax],
+                rangemode="tozero",
+                fixedrange=True
+            )
+
+            st.plotly_chart(
+                fig_timeslot_2hr_mape,
+                width="stretch",
+                key="timeslot_2hr_mape_row1",
+                config={
+                    "displayModeBar": False,
+                    "staticPlot": True,
+                    "responsive": True
+                }
+            )
+
+    # ---------------- OVERALL MAPE PIE ----------------
+    with overall_col:
+
+        with st.container(border=True):
+
+            overall_information = (
+                periodwise_mape_results["Overall"]
+            )
+
+            if overall_information["total"] > 0:
+
+                overall_pie_figure = (
+                    create_mape_distribution_pie(
+                        distribution_df=overall_information[
+                            "data"
+                        ],
+                        total_predictions=overall_information[
+                            "total"
+                        ],
+                        period_title="Overall",
+                        time_range=overall_information[
+                            "time_range"
+                        ]
+                    )
+                )
+
+                overall_pie_figure.update_layout(
+                    height=440,
+                    margin=dict(
+                        l=10,
+                        r=10,
+                        t=70,
+                        b=15
+                    )
+                )
+
+                st.plotly_chart(
+                    overall_pie_figure,
+                    width="stretch",
+                    key="overall_2hr_mape_row1",
+                    config={
+                        "displayModeBar": False,
+                        "staticPlot": True,
+                        "responsive": True
+                    }
+                )
+
+            else:
+                st.markdown("### Overall")
+
+                st.info(
+                    "No valid predictions are available "
+                    "for the overall distribution."
+                )
+
+    # =====================================================
+    # ROW 2 HEADING
+    # =====================================================
+
+    st.markdown(
+        """
+        <div style="
+            font-size:1.30rem;
+            font-weight:700;
+            margin-top:20px;
+            margin-bottom:10px;
+        ">
+            🕒 Period-Wise MAPE Distribution
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
-    return fig
+    # =====================================================
+    # ROW 2: MORNING, NOON AND EVENING
+    # =====================================================
 
-
-# =====================================================
-# ROW 2: OVERALL, MORNING, NOON AND EVENING PIE CHARTS
-# ALL FOUR PIE CHARTS IN ONE ROW
-# =====================================================
-
-if periodwise_mape_results:
-
-    show_section_heading(
-        title="MAPE Distribution of 2-Hour Ahead Forecast",
-        start_date=periodwise_mape_start,
-        end_date=periodwise_mape_end,
-        icon="🎯",
-        heading_size="1.5rem",
-        top_margin="20px",
-        bottom_margin="10px"
+    morning_col, noon_col, evening_col = st.columns(
+        3,
+        gap="large"
     )
 
-    overall_col, morning_col, noon_col, evening_col = st.columns(
-        4,
-        gap="medium"
-    )
-
-    pie_chart_settings = [
-        (
-            overall_col,
-            "Overall",
-            "overall_2hr_mape_pie"
-        ),
+    period_chart_settings = [
         (
             morning_col,
             "Morning",
-            "morning_2hr_mape_pie"
+            "morning_2hr_mape_row2"
         ),
         (
             noon_col,
             "Noon",
-            "noon_2hr_mape_pie"
+            "noon_2hr_mape_row2"
         ),
         (
             evening_col,
             "Evening",
-            "evening_2hr_mape_pie"
+            "evening_2hr_mape_row2"
         )
     ]
 
-    for column, period_name, chart_key in pie_chart_settings:
+    for column, period_name, chart_key in period_chart_settings:
 
         period_information = periodwise_mape_results[
             period_name
@@ -2451,8 +2428,8 @@ if periodwise_mape_results:
                     period_pie_figure.update_layout(
                         height=420,
                         margin=dict(
-                            l=5,
-                            r=5,
+                            l=15,
+                            r=15,
                             t=70,
                             b=20
                         )
@@ -2480,7 +2457,15 @@ if periodwise_mape_results:
                     )
 
 else:
-    st.warning(
-        "Not enough valid 2-hour-ahead forecast data is available "
-        "to calculate the MAPE distributions."
-    )
+
+    if timeslot_2hr_mape_performance.empty:
+        st.warning(
+            "Not enough valid 2-hour-ahead forecast data "
+            "is available to calculate time-slot-wise MAPE."
+        )
+
+    if not periodwise_mape_results:
+        st.warning(
+            "Not enough valid 2-hour-ahead forecast data "
+            "is available to calculate MAPE distributions."
+        )
