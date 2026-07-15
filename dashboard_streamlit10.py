@@ -530,27 +530,27 @@ else:
                     marker=dict(color=GFS_COLOR)
                 ))
 
-            actual_plot_df = day_df[
-                (day_df["valid_time_ist"] >= selected_datetime) &
-                (day_df["valid_time_ist"] <= previous_hour_time)
-            ].copy()
+                actual_plot_df = day_df[
+                    (day_df["valid_time_ist"] >= selected_datetime) &
+                    (day_df["valid_time_ist"] <= previous_hour_time)
+                ].copy()
             
-            if not actual_2hr_plot_df.empty:
-            
-                fig3.add_trace(go.Scatter(
-                    x=actual_2hr_plot_df["valid_time_ist"],
-                    y=actual_2hr_plot_df["Actual_GHI"],
-                    mode="lines+markers",
-                    name="Actual GHI (Available)",
-                    line=dict(
-                        color=ACTUAL_COLOR,
-                        dash="dot",
-                        width=2
-                    ),
-                    marker=dict(
-                        color=ACTUAL_COLOR
-                    )
-                ))
+                if not actual_2hr_plot_df.empty:
+                
+                    fig3.add_trace(go.Scatter(
+                        x=actual_2hr_plot_df["valid_time_ist"],
+                        y=actual_2hr_plot_df["Actual_GHI"],
+                        mode="lines+markers",
+                        name="Actual GHI (Available)",
+                        line=dict(
+                            color=ACTUAL_COLOR,
+                            dash="dot",
+                            width=2
+                        ),
+                        marker=dict(
+                            color=ACTUAL_COLOR
+                        )
+                    ))
 
                 fig3.add_trace(go.Scatter(
                     x=two_hour_df["valid_time_ist"],
