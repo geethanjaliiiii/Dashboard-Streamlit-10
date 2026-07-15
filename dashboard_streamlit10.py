@@ -2464,86 +2464,143 @@ if periodwise_mape_results:
         bottom_margin="10px"
     )
 
-    (
-        overall_pie_col,
-        morning_pie_col,
-        noon_pie_col,
-        evening_pie_col
-    ) = st.columns(4, gap="medium")
-
-    pie_period_columns = [
-        (
-            overall_pie_col,
-            "Overall",
-            "overall_2hr_mape_pie"
-        ),
-        (
-            morning_pie_col,
-            "Morning",
-            "morning_2hr_mape_pie"
-        ),
-        (
-            noon_pie_col,
-            "Noon",
-            "noon_2hr_mape_pie"
-        ),
-        (
-            evening_pie_col,
-            "Evening",
-            "evening_2hr_mape_pie"
-        )
-    ]
-
-    for column, period_name, chart_key in pie_period_columns:
-
-        period_information = (
-            periodwise_mape_results[period_name]
-        )
-
-        with column:
-
-            with st.container(border=True):
-
-                if period_information["total"] > 0:
-
-                    period_pie_figure = (
-                        create_mape_distribution_pie(
-                            distribution_df=period_information[
-                                "data"
-                            ],
-                            total_predictions=period_information[
-                                "total"
-                            ],
-                            period_title=period_name,
-                            time_range=period_information[
-                                "time_range"
-                            ]
-                        )
-                    )
-
-                    st.plotly_chart(
-                        period_pie_figure,
-                        width="stretch",
-                        key=chart_key,
-                        config={
-                            "displayModeBar": False,
-                            "staticPlot": True,
-                            "responsive": True
-                        }
-                    )
-
-                else:
-                    st.markdown(
-                        f"### {period_name}"
-                    )
-
-                    st.info(
-                        "No valid predictions are available "
-                        "for this period."
-                    )
-
-else:
-    st.warning(
-        "Not enough valid 2-hour-ahead forecast data is available "
-        "to calculate period-wise MAPE distributions."
+    # =====================================================
+    # TWO-PANEL MAPE DISTRIBUTION LAYOUT
+    # LEFT: OVERALL
+    # RIGHT: MORNING, NOON AND EVENING
+    # =====================================================
+    
+    overall_panel, period_panel = st.columns(
+        [1.05, 2.95],
+        gap="large"
     )
+    
+    
+    # =====================================================
+    # LEFT PANEL: OVERALL MAPE DISTRIBUTION
+    # =====================================================
+    
+    with overall_panel:
+    
+        with st.container(border=True):
+    
+            overall_information = periodwise_mape_results["Overall"]
+    
+            if overall_information["total"] > 0:
+    
+                overall_pie_figure = create_mape_distribution_pie(
+                    distribution_df=overall_information["data"],
+                    total_predictions=overall_information["total"],
+                    period_title="Overall",
+                    time_range=overall_information["time_range"]
+                )
+    
+                # Slightly taller because this is a larger standalone chart
+                overall_pie_figure.update_layout(
+                    height=440,
+                    margin=dict(
+                        l=15,
+                        r=15,
+                        t=70,
+                        b=20
+                    )
+                )
+    
+                st.plotly_chart(
+                    overall_pie_figure,
+                    width="stretch",
+                    key="overall_2hr_mape_pie",
+                    config={
+                        "displayModeBar": False,
+                        "staticPlot": True,
+                        "responsive": True
+                    }
+                )
+    
+            else:
+                st.markdown("### Overall")
+    
+                st.info(
+                    "No valid predictions are available "
+                    "for the overall period."
+                )
+    
+    
+    # =====================================================
+    # RIGHT PANEL: MORNING, NOON AND EVENING
+    # =====================================================
+    
+    with period_panel:
+    
+        with st.container(border=True):
+    
+            morning_col, noon_col, evening_col = st.columns(
+                3,
+                gap="small"
+            )
+    
+            period_chart_settings = [
+                (
+                    morning_col,
+                    "Morning",
+                    "morning_2hr_mape_pie"
+                ),
+                (
+                    noon_col,
+                    "Noon",
+                    "noon_2hr_mape_pie"
+                ),
+                (
+                    evening_col,
+                    "Evening",
+                    "evening_2hr_mape_pie"
+                )
+            ]
+    
+            for column, period_name, chart_key in period_chart_settings:
+    
+                period_information = periodwise_mape_results[
+                    period_name
+                ]
+    
+                with column:
+    
+                    if period_information["total"] > 0:
+    
+                        period_pie_figure = create_mape_distribution_pie(
+                            distribution_df=period_information["data"],
+                            total_predictions=period_information["total"],
+                            period_title=period_name,
+                            time_range=period_information["time_range"]
+                        )
+    
+                        period_pie_figure.update_layout(
+                            height=440,
+                            margin=dict(
+                                l=5,
+                                r=5,
+                                t=70,
+                                b=20
+                            )
+                        )
+    
+                        st.plotly_chart(
+                            period_pie_figure,
+                            width="stretch",
+                            key=chart_key,
+                            config={
+                                "displayModeBar": False,
+                                "staticPlot": True,
+                                "responsive": True
+                            }
+                        )
+    
+                    else:
+                        st.markdown(
+                            f"### {period_name}"
+                        )
+    
+                        st.info(
+                            "No valid predictions "
+                            "are available."
+                        )
