@@ -2637,3 +2637,367 @@ else:
             "Not enough valid 2-hour-ahead forecast data "
             "is available to calculate MAPE distributions."
         )
+
+# =====================================================
+# POSITIVE AND NEGATIVE BIAS DISTRIBUTION
+# 2-HOUR AHEAD FORECAST
+# =====================================================
+
+@st.cache_data
+def calculate_2hr_bias_distributions(input_df):
+
+    bias_df = input_df.dropna(
+        subset=[
+            "valid_time_ist",
+            "Actual_GHI",
+            "Two_Hour_Ahead_Forecast"
+        ]
+    ).copy()
+
+    bias_df["hour"] = (
+        bias_df["valid_time_ist"].dt.hour
+        + bias_df["valid_time_ist"].dt.minute / 60
+    )
+
+    # Same evaluation rules used elsewhere
+    bias_df = bias_df[
+        (bias_df["hour"] >= 6.5)
+        & (bias_df["hour"] <= 17.5)
+        & (bias_df["Actual_GHI"] > 50)
+    ].copy()
+
+    if bias_df.empty:
+        return (
+            pd.DataFrame(),
+            pd.DataFrame(),
+            None,
+            None,
+            0,
+            0
+        )
+
+    # Signed percentage bias
+    bias_df["Percentage_Bias"] = (
+        (
+            bias_df["Two_Hour_Ahead_Forecast"]
+            - bias_df["Actual_GHI"]
+        )
+        / bias_df["Actual_GHI"]
+    ) * 100
+
+    start_date = (
+        bias_df["valid_time_ist"]
+        .dt.date
+        .min()
+    )
+
+    end_date = (
+        bias_df["valid_time_ist"]
+        .dt.date
+        .max()
+    )
+
+    # Positive bias = forecast greater than actual
+    positive_bias_df = bias_df[
+        bias_df["Percentage_Bias"] > 0
+    ].copy()
+
+    # Negative bias = forecast less than actual
+    negative_bias_df = bias_df[
+        bias_df["Percentage_Bias"] < 0
+    ].copy()
+
+    # Use absolute magnitude for range classification
+    positive_bias_df["Bias_Magnitude"] = (
+        positive_bias_df["Percentage_Bias"].abs()
+    )
+
+    negative_bias_df["Bias_Magnitude"] = (
+        negative_bias_df["Percentage_Bias"].abs()
+    )
+
+    category_order = [
+        "0–5%",
+        ">5–10%",
+        ">10–15%",
+        ">15–20%",
+        ">20%"
+    ]
+
+    bins = [
+        0,
+        5,
+        10,
+        15,
+        20,
+        np.inf
+    ]
+
+    # Positive-bias categories
+    positive_bias_df["Bias_Range"] = pd.cut(
+        positive_bias_df["Bias_Magnitude"],
+        bins=bins,
+        labels=category_order,
+        include_lowest=True,
+        right=True
+    )
+
+    positive_distribution = (
+        positive_bias_df["Bias_Range"]
+        .value_counts()
+        .reindex(
+            category_order,
+            fill_value=0
+        )
+        .rename_axis("Bias Range")
+        .reset_index(name="Number of Predictions")
+    )
+
+    # Negative-bias categories
+    negative_bias_df["Bias_Range"] = pd.cut(
+        negative_bias_df["Bias_Magnitude"],
+        bins=bins,
+        labels=category_order,
+        include_lowest=True,
+        right=True
+    )
+
+    negative_distribution = (
+        negative_bias_df["Bias_Range"]
+        .value_counts()
+        .reindex(
+            category_order,
+            fill_value=0
+        )
+        .rename_axis("Bias Range")
+        .reset_index(name="Number of Predictions")
+    )
+
+    return (
+        positive_distribution,
+        negative_distribution,
+        start_date,
+        end_date,
+        len(positive_bias_df),
+        len(negative_bias_df)
+    )
+
+
+# =====================================================
+# CALCULATE BIAS DISTRIBUTIONS
+# =====================================================
+
+(
+    positive_bias_distribution,
+    negative_bias_distribution,
+    bias_start_date,
+    bias_end_date,
+    total_positive_bias_predictions,
+    total_negative_bias_predictions
+) = calculate_2hr_bias_distributions(df)
+
+
+# =====================================================
+# DONUT CHART FUNCTION FOR BIAS DISTRIBUTION
+# =====================================================
+
+def create_bias_distribution_pie(
+    distribution_df,
+    total_predictions,
+    chart_title,
+    center_label
+):
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Pie(
+            labels=distribution_df["Bias Range"],
+            values=distribution_df["Number of Predictions"],
+
+            hole=0.48,
+
+            marker=dict(
+                colors=MAPE_DISTRIBUTION_COLORS,
+                line=dict(
+                    color="white",
+                    width=2
+                )
+            ),
+
+            texttemplate=(
+                "<b>%{label}</b><br>"
+                "%{percent:.1%}"
+            ),
+
+            textposition="auto",
+
+            insidetextfont=dict(
+                size=11,
+                color="white"
+            ),
+
+            hovertemplate=(
+                "<b>%{label}</b><br>"
+                "Predictions: %{value}<br>"
+                "Share: %{percent:.2%}"
+                "<extra></extra>"
+            ),
+
+            sort=False,
+            direction="clockwise",
+            pull=[0.025, 0, 0, 0, 0],
+            automargin=True,
+            showlegend=False
+        )
+    )
+
+    fig.update_layout(
+        title=dict(
+            text=f"<b>{chart_title}</b>",
+            x=0.5,
+            xanchor="center",
+            font=dict(size=18)
+        ),
+
+        height=440,
+        showlegend=False,
+
+        annotations=[
+            dict(
+                text=(
+                    f"<b>{total_predictions}</b><br>"
+                    f"<span style='font-size:11px;'>"
+                    f"{center_label}"
+                    f"</span>"
+                ),
+                x=0.5,
+                y=0.5,
+                showarrow=False,
+                align="center",
+                font=dict(size=20)
+            )
+        ],
+
+        margin=dict(
+            l=20,
+            r=20,
+            t=70,
+            b=20
+        ),
+
+        uniformtext=dict(
+            minsize=8,
+            mode="hide"
+        )
+    )
+
+    return fig
+
+
+# =====================================================
+# DISPLAY POSITIVE AND NEGATIVE BIAS PIES
+# BOTH IN ONE ROW INSIDE ONE OUTER BOX
+# =====================================================
+
+if (
+    not positive_bias_distribution.empty
+    or not negative_bias_distribution.empty
+):
+
+    show_section_heading(
+        title="Bias Distribution of 2-Hour Ahead Forecast",
+        start_date=bias_start_date,
+        end_date=bias_end_date,
+        icon="⚖️",
+        heading_size="1.5rem",
+        top_margin="20px",
+        bottom_margin="10px"
+    )
+
+    with st.container(border=True):
+
+        positive_col, negative_col = st.columns(
+            2,
+            gap="large"
+        )
+
+        # =====================================================
+        # POSITIVE BIAS
+        # =====================================================
+
+        with positive_col:
+
+            if total_positive_bias_predictions > 0:
+
+                fig_positive_bias = (
+                    create_bias_distribution_pie(
+                        distribution_df=positive_bias_distribution,
+                        total_predictions=total_positive_bias_predictions,
+                        chart_title="Positive Bias Distribution",
+                        center_label="Overpredictions"
+                    )
+                )
+
+                st.plotly_chart(
+                    fig_positive_bias,
+                    width="stretch",
+                    key="positive_2hr_bias_distribution",
+                    config={
+                        "displayModeBar": False,
+                        "staticPlot": True,
+                        "responsive": True
+                    }
+                )
+
+            else:
+                st.markdown(
+                    "### 📈 Positive Bias Distribution"
+                )
+
+                st.info(
+                    "No positive-bias predictions are available."
+                )
+
+        # =====================================================
+        # NEGATIVE BIAS
+        # =====================================================
+
+        with negative_col:
+
+            if total_negative_bias_predictions > 0:
+
+                fig_negative_bias = (
+                    create_bias_distribution_pie(
+                        distribution_df=negative_bias_distribution,
+                        total_predictions=total_negative_bias_predictions,
+                        chart_title="Negative Bias Distribution",
+                        center_label="Underpredictions"
+                    )
+                )
+
+                st.plotly_chart(
+                    fig_negative_bias,
+                    width="stretch",
+                    key="negative_2hr_bias_distribution",
+                    config={
+                        "displayModeBar": False,
+                        "staticPlot": True,
+                        "responsive": True
+                    }
+                )
+
+            else:
+                st.markdown(
+                    "### 📉 Negative Bias Distribution"
+                )
+
+                st.info(
+                    "No negative-bias predictions are available."
+                )
+
+else:
+    st.warning(
+        "Not enough valid 2-hour-ahead forecast data is available "
+        "to calculate positive and negative bias distributions."
+    )
