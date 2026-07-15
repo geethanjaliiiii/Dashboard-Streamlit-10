@@ -2525,13 +2525,15 @@ if periodwise_mape_results:
                     "for the overall period."
                 )
     
-    
+
     # =====================================================
     # RIGHT PANEL: MORNING, NOON AND EVENING
+    # One outer box + three separate inner boxes
     # =====================================================
     
     with period_panel:
     
+        # Outer box that groups all three periods
         with st.container(border=True):
     
             morning_col, noon_col, evening_col = st.columns(
@@ -2565,42 +2567,52 @@ if periodwise_mape_results:
     
                 with column:
     
-                    if period_information["total"] > 0:
+                    # Separate inner box for each period
+                    with st.container(border=True):
     
-                        period_pie_figure = create_mape_distribution_pie(
-                            distribution_df=period_information["data"],
-                            total_predictions=period_information["total"],
-                            period_title=period_name,
-                            time_range=period_information["time_range"]
-                        )
+                        if period_information["total"] > 0:
     
-                        period_pie_figure.update_layout(
-                            height=440,
-                            margin=dict(
-                                l=5,
-                                r=5,
-                                t=70,
-                                b=20
+                            period_pie_figure = (
+                                create_mape_distribution_pie(
+                                    distribution_df=period_information[
+                                        "data"
+                                    ],
+                                    total_predictions=period_information[
+                                        "total"
+                                    ],
+                                    period_title=period_name,
+                                    time_range=period_information[
+                                        "time_range"
+                                    ]
+                                )
                             )
-                        )
     
-                        st.plotly_chart(
-                            period_pie_figure,
-                            width="stretch",
-                            key=chart_key,
-                            config={
-                                "displayModeBar": False,
-                                "staticPlot": True,
-                                "responsive": True
-                            }
-                        )
+                            period_pie_figure.update_layout(
+                                height=420,
+                                margin=dict(
+                                    l=5,
+                                    r=5,
+                                    t=70,
+                                    b=20
+                                )
+                            )
     
-                    else:
-                        st.markdown(
-                            f"### {period_name}"
-                        )
+                            st.plotly_chart(
+                                period_pie_figure,
+                                width="stretch",
+                                key=chart_key,
+                                config={
+                                    "displayModeBar": False,
+                                    "staticPlot": True,
+                                    "responsive": True
+                                }
+                            )
     
-                        st.info(
-                            "No valid predictions "
-                            "are available."
-                        )
+                        else:
+                            st.markdown(
+                                f"### {period_name}"
+                            )
+    
+                            st.info(
+                                "No valid predictions are available."
+                            )
