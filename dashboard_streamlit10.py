@@ -219,6 +219,18 @@ selected_datetime = pd.to_datetime(
     str(selected_date) + " " + selected_time.strftime("%H:%M")
 )
 
+# =====================================================
+# ACTUAL GHI AVAILABLE THROUGH THE PREVIOUS HOUR
+# =====================================================
+
+previous_hour_time = selected_datetime - pd.Timedelta(hours=1)
+
+actual_until_previous_hour_df = day_df[
+    day_df["valid_time_ist"] <= previous_hour_time
+].dropna(
+    subset=["Actual_GHI"]
+).copy()
+
 two_hour_end_time = selected_datetime + pd.Timedelta(hours=2)
 
 target_row = day_df[
@@ -447,6 +459,23 @@ else:
                 marker=dict(color=GFS_COLOR)
             ))
 
+            if not actual_until_previous_hour_df.empty:
+                
+                fig2.add_trace(go.Scatter(
+                    x=actual_until_previous_hour_df["valid_time_ist"],
+                    y=actual_until_previous_hour_df["Actual_GHI"],
+                    mode="lines+markers",
+                    name="Actual GHI (Available)",
+                    line=dict(
+                        color=ACTUAL_COLOR,
+                        dash="dot",
+                        width=2
+                    ),
+                    marker=dict(
+                        color=ACTUAL_COLOR
+                    )
+                ))
+
             fig2.add_trace(go.Scatter(
                 x=day_df["valid_time_ist"],
                 y=day_df["Daily_Forecast_GHI"],
@@ -499,6 +528,28 @@ else:
                     name="GFS GHI",
                     line=dict(color=GFS_COLOR),
                     marker=dict(color=GFS_COLOR)
+                ))
+
+                actual_2hr_plot_df = actual_until_previous_hour_df[
+                actual_until_previous_hour_df["valid_time_ist"]
+                <= two_hour_end_time
+            ].copy()
+            
+            if not actual_2hr_plot_df.empty:
+            
+                fig3.add_trace(go.Scatter(
+                    x=actual_2hr_plot_df["valid_time_ist"],
+                    y=actual_2hr_plot_df["Actual_GHI"],
+                    mode="lines+markers",
+                    name="Actual GHI (Available)",
+                    line=dict(
+                        color=ACTUAL_COLOR,
+                        dash="dot",
+                        width=2
+                    ),
+                    marker=dict(
+                        color=ACTUAL_COLOR
+                    )
                 ))
 
                 fig3.add_trace(go.Scatter(
