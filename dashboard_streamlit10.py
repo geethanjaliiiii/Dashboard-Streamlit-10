@@ -358,7 +358,7 @@ else:
     DAILY_FORECAST_FILL = "rgba(242,142,43,0.25)"
     TWO_HOUR_COLOR = "#2CA02C"        # Green
     ACTUAL_COLOR = "#636EFA"          # Blue
-    DAY_AHEAD_COLOR = "#C62828" # Magenta
+    DAY_AHEAD_COLOR = "#5E35B1" 
 
     # =====================================================
     # FIRST ROW: DAILY FORECAST GHI ONLY
@@ -383,7 +383,7 @@ else:
             x=day_df["valid_time_ist"],
             y=day_df["Next_Day_Ahead_Forecast"],
             mode="lines+markers",
-            name=f"Day-Ahead Forecast for {next_date}",
+            name=f"Day-Ahead Forecast",
             line=dict(
                 color=DAY_AHEAD_COLOR,
                 width=2.5,
