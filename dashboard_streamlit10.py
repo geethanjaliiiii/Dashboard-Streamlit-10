@@ -683,8 +683,15 @@ else:
                 ))
 
                 actual_2hr_plot_df = day_df[
-                    (day_df["valid_time_ist"] >= two_hour_df["valid_time_ist"].min()) &
-                    day_df["valid_time_ist"] <= previous_hour_time
+                    (
+                        day_df["valid_time_ist"]
+                        >= two_hour_df["valid_time_ist"].min()
+                    )
+                    &
+                    (
+                        day_df["valid_time_ist"]
+                        <= previous_hour_time
+                    )
                 ].dropna(
                     subset=["Actual_GHI"]
                 ).copy()
