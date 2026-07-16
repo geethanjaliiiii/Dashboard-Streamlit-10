@@ -310,28 +310,64 @@ actual_until_previous_hour_df = day_df[
     subset=["Actual_GHI"]
 ).copy()
 
-two_hour_end_time = selected_datetime + pd.Timedelta(hours=2)
+# =====================================================
+# 2-HOUR-AHEAD FORECAST DISPLAY LOGIC
+# For 16:30 and 17:30, retain the 15:30 forecast view
+# because the final dashboard target time is 17:30.
+# =====================================================
 
+latest_two_hour_issue_time = pd.to_datetime(
+    str(selected_date) + " 15:30"
+)
+
+# Figure 3 uses the selected time up to 15:30.
+# For 16:30 and 17:30, it continues using 15:30.
+two_hour_reference_datetime = min(
+    selected_datetime,
+    latest_two_hour_issue_time
+)
+
+two_hour_end_time = (
+    two_hour_reference_datetime
+    + pd.Timedelta(hours=2)
+)
+
+# All 2-hour-ahead forecasts available for this date
+available_two_hour_df = day_df.dropna(
+    subset=["Two_Hour_Ahead_Forecast"]
+).copy()
+
+has_any_two_hour_forecast_for_date = (
+    not available_two_hour_df.empty
+)
+
+# Check whether the required target forecast exists
 target_row = day_df[
     day_df["valid_time_ist"] == two_hour_end_time
 ]
 
 has_two_hour_forecast = (
-    not target_row.empty and
-    pd.notna(target_row["Two_Hour_Ahead_Forecast"].iloc[0])
+    not target_row.empty
+    and pd.notna(
+        target_row["Two_Hour_Ahead_Forecast"].iloc[0]
+    )
 )
 
 if has_two_hour_forecast:
+
     two_hour_df = day_df[
         day_df["valid_time_ist"] <= two_hour_end_time
-    ].copy()
-
-    two_hour_df = two_hour_df.dropna(
+    ].dropna(
         subset=["Two_Hour_Ahead_Forecast"]
-    )
+    ).copy()
+
 else:
     two_hour_df = pd.DataFrame()
-
+# Actual GHI cut-off specifically for Figure 3
+two_hour_previous_hour_time = (
+    two_hour_reference_datetime
+    - pd.Timedelta(hours=1)
+)
 
 if day_df.empty:
     st.stop()
@@ -648,7 +684,7 @@ else:
 
                 actual_2hr_plot_df = day_df[
                     (day_df["valid_time_ist"] >= two_hour_df["valid_time_ist"].min()) &
-                    (day_df["valid_time_ist"] <= previous_hour_time)
+                    (day_df["valid_time_ist"] <= two_hour_previous_hour_time)
                 ].dropna(
                     subset=["Actual_GHI"]
                 ).copy()
