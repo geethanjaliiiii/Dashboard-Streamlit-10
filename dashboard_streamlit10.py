@@ -25,22 +25,51 @@ st.markdown(
 )
 
 DATA_PATH = "Bias Correction_with_Day_Ahead_2hrahead_Forecast_3.csv"
+DAY_AHEAD_PATH = "7_day_average_forecast.csv"
 
 @st.cache_data
 def load_data():
+    
     df = pd.read_csv(DATA_PATH)
+    # Separate 7-day average forecast CSV
+    day_ahead_df = pd.read_csv(DAY_AHEAD_PATH)
+
 
     df["valid_time_ist"] = (
         pd.to_datetime(df["valid_time_ist"])
           .dt.tz_localize(None)
     )
     df["valid_time_ist"] = pd.to_datetime(df["valid_time_ist"])
+    
+    # Convert timestamps in day-ahead CSV
+    day_ahead_df["valid_time_ist"] = (
+        pd.to_datetime(
+            day_ahead_df["valid_time_ist"],
+            errors="coerce"
+        )
+        .dt.tz_localize(None)
+    )
 
+    # Keep only required columns from the second CSV
+    day_ahead_df = day_ahead_df[
+        [
+            "valid_time_ist",
+            "Seven_Day_Average_Forecast"
+        ]
+    ].copy()
+    
+    # Add the day-ahead forecast to the dashboard dataframe
+    df = df.merge(
+        day_ahead_df,
+        on="valid_time_ist",
+        how="left"
+    )
     df = df.rename(columns={
         "avg_ghi": "GFS_GHI",
         "ALLSKY_SFC_SW_DWN": "Actual_GHI",
         "Day_Ahead_Forecast": "Daily_Forecast_GHI",
-        "2hr_ahead_forecast": "Two_Hour_Ahead_Forecast"
+        "2hr_ahead_forecast": "Two_Hour_Ahead_Forecast",
+        "Seven_Day_Average_Forecast": "Day_Ahead_Forecast_GHI"
     })
 
     df = df.sort_values("valid_time_ist").reset_index(drop=True)
@@ -215,6 +244,56 @@ day_df = day_df[
     (day_df["hour"] <= 17.5)
 ].copy()
 
+# =====================================================
+# DAY-AHEAD FORECAST FOR THE NEXT DAY
+# Displayed over the selected day's time axis
+# =====================================================
+
+next_date = (
+    pd.Timestamp(selected_date)
+    + pd.Timedelta(days=1)
+).date()
+
+next_day_df = df[
+    df["valid_time_ist"].dt.date == next_date
+].copy()
+
+next_day_df["hour"] = (
+    next_day_df["valid_time_ist"].dt.hour
+    + next_day_df["valid_time_ist"].dt.minute / 60
+)
+
+next_day_df = next_day_df[
+    (next_day_df["hour"] >= 6.5)
+    & (next_day_df["hour"] <= 17.5)
+].copy()
+
+# Match tomorrow's forecast to today's time slots
+day_df["Time_Slot"] = (
+    day_df["valid_time_ist"].dt.strftime("%H:%M")
+)
+
+next_day_df["Time_Slot"] = (
+    next_day_df["valid_time_ist"].dt.strftime("%H:%M")
+)
+
+day_ahead_lookup = (
+    next_day_df
+    .dropna(subset=["Day_Ahead_Forecast_GHI"])
+    .drop_duplicates(subset=["Time_Slot"], keep="last")
+    .set_index("Time_Slot")["Day_Ahead_Forecast_GHI"]
+)
+
+day_df["Next_Day_Ahead_Forecast"] = (
+    day_df["Time_Slot"].map(day_ahead_lookup)
+)
+
+has_day_ahead_forecast = (
+    day_df["Next_Day_Ahead_Forecast"]
+    .notna()
+    .any()
+)
+
 selected_datetime = pd.to_datetime(
     str(selected_date) + " " + selected_time.strftime("%H:%M")
 )
@@ -279,6 +358,7 @@ else:
     DAILY_FORECAST_FILL = "rgba(242,142,43,0.25)"
     TWO_HOUR_COLOR = "#2CA02C"        # Green
     ACTUAL_COLOR = "#636EFA"          # Blue
+    DAY_AHEAD_COLOR = "#D81B60"  # Magenta
 
     # =====================================================
     # FIRST ROW: DAILY FORECAST GHI ONLY
@@ -297,6 +377,25 @@ else:
         fillcolor=DAILY_FORECAST_FILL
     ))
 
+    if has_day_ahead_forecast:
+        
+        fig1.add_trace(go.Scatter(
+            x=day_df["valid_time_ist"],
+            y=day_df["Next_Day_Ahead_Forecast"],
+            mode="lines+markers",
+            name=f"Day-Ahead Forecast for {next_date}",
+            line=dict(
+                color=DAY_AHEAD_COLOR,
+                width=2.5,
+                dash="dash"
+            ),
+            marker=dict(
+                color=DAY_AHEAD_COLOR,
+                size=7
+            ),
+            connectgaps=False
+        ))
+
     if has_two_hour_forecast:
 
         fig1.add_trace(go.Scatter(
@@ -313,7 +412,10 @@ else:
 
     fig1.update_layout(
         title=dict(
-            text=f"☀️ Forecasted GHI for {selected_date}",
+           text=(
+                f"☀️ Forecasted GHI for {selected_date} "
+                f"with Day-Ahead Outlook for {next_date}"
+            ),
             font=dict(size=30)
         ),
         xaxis_title="Time",
@@ -340,7 +442,19 @@ else:
     row1_col, row1_space = st.columns([4.5, 0.8])
 
     with row1_col:
-        st.plotly_chart(fig1, use_container_width=True, key="daily_forecast_main")
+        
+        st.plotly_chart(
+            fig1,
+            width="stretch",
+            key="daily_forecast_main"
+        )
+
+        if not has_day_ahead_forecast:
+            
+            st.info(
+                f"Day-ahead forecast for {next_date} "
+                "is not available."
+            )
 
     with row1_space:
 
