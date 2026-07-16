@@ -25,42 +25,22 @@ st.markdown(
 )
 
 DATA_PATH = "Bias Correction_with_Day_Ahead_2hrahead_Forecast_3.csv"
-DAYAHEAD_PATH = "7_day_average_forecast.csv"
 
 @st.cache_data
 def load_data():
     df = pd.read_csv(DATA_PATH)
-    dayahead_df = pd.read_csv(DAYAHEAD_PATH)
 
     df["valid_time_ist"] = (
         pd.to_datetime(df["valid_time_ist"])
           .dt.tz_localize(None)
     )
     df["valid_time_ist"] = pd.to_datetime(df["valid_time_ist"])
-    dayahead_df["valid_time_ist"] = (
-        pd.to_datetime(dayahead_df["valid_time_ist"])
-          .dt.tz_localize(None)
-    )
-
-    dayahead_df = dayahead_df[
-        [
-            "valid_time_ist",
-            "Seven_Day_Average_Forecast"
-        ]
-    ]
-    
-    df = df.merge(
-        dayahead_df,
-        on="valid_time_ist",
-        how="left"
-    )
 
     df = df.rename(columns={
         "avg_ghi": "GFS_GHI",
         "ALLSKY_SFC_SW_DWN": "Actual_GHI",
         "Day_Ahead_Forecast": "Daily_Forecast_GHI",
-        "2hr_ahead_forecast": "Two_Hour_Ahead_Forecast",
-        "Seven_Day_Average_Forecast":"Day_Ahead_Forecast_GHI"
+        "2hr_ahead_forecast": "Two_Hour_Ahead_Forecast"
     })
 
     df = df.sort_values("valid_time_ist").reset_index(drop=True)
@@ -225,32 +205,6 @@ with c4:
 
 day_df = df[df["valid_time_ist"].dt.date == selected_date].copy()
 
-# =====================================================
-# NEXT DAY (DAY-AHEAD) FORECAST
-# =====================================================
-
-next_date = selected_date + pd.Timedelta(days=1)
-
-next_day_df = df[
-    df["valid_time_ist"].dt.date == next_date
-].copy()
-
-next_day_df["hour"] = (
-    next_day_df["valid_time_ist"].dt.hour +
-    next_day_df["valid_time_ist"].dt.minute / 60
-)
-
-next_day_df = next_day_df[
-    (next_day_df["hour"] >= 6.5) &
-    (next_day_df["hour"] <= 17.5)
-]
-
-has_day_ahead = (
-    not next_day_df.empty
-    and
-    next_day_df["Day_Ahead_Forecast_GHI"].notna().any()
-)
-
 day_df["hour"] = (
     day_df["valid_time_ist"].dt.hour +
     day_df["valid_time_ist"].dt.minute / 60
@@ -343,29 +297,6 @@ else:
         fillcolor=DAILY_FORECAST_FILL
     ))
 
-    if has_day_ahead:
-        
-        fig1.add_trace(go.Scatter(
-
-            x=next_day_df["valid_time_ist"],
-    
-            y=next_day_df["Day_Ahead_Forecast_GHI"],
-    
-            mode="lines+markers",
-    
-            name="Day-Ahead Forecast",
-    
-            line=dict(
-                color="#8E44AD",
-                width=2
-            ),
-    
-            marker=dict(
-                color="#8E44AD"
-            )
-    
-        ))
-
     if has_two_hour_forecast:
 
         fig1.add_trace(go.Scatter(
@@ -409,18 +340,7 @@ else:
     row1_col, row1_space = st.columns([4.5, 0.8])
 
     with row1_col:
-        
-        st.plotly_chart(
-            fig1,
-            use_container_width=True,
-            key="daily_forecast_main"
-        )
-
-        if not has_day_ahead:
-            
-            st.info(
-                "Day-ahead forecast is not available for the selected day."
-            )
+        st.plotly_chart(fig1, use_container_width=True, key="daily_forecast_main")
 
     with row1_space:
 
