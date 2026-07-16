@@ -684,7 +684,7 @@ else:
 
                 actual_2hr_plot_df = day_df[
                     (day_df["valid_time_ist"] >= two_hour_df["valid_time_ist"].min()) &
-                    (day_df["valid_time_ist"] <= two_hour_previous_hour_time)
+                    day_df["valid_time_ist"] <= previous_hour_time
                 ].dropna(
                     subset=["Actual_GHI"]
                 ).copy()
@@ -730,15 +730,29 @@ else:
                 )
 
             else:
-                selected_target_time = two_hour_end_time.strftime("%H:%M")
-
-                st.warning(
-                    f"No 2-hour ahead forecast available on {selected_date} "
-                    f"for selected time {selected_time.strftime('%H:%M')} "
-                    f"(target time: {selected_target_time})"
+                
+                selected_target_time = (
+                    two_hour_end_time.strftime("%H:%M")
                 )
-
+            
+                if not has_any_two_hour_forecast_for_date:
+            
+                    st.warning(
+                        f"No 2-hour-ahead forecast is available "
+                        f"for {selected_date}."
+                    )
+            
+                else:
+            
+                    st.warning(
+                        f"A 2-hour-ahead forecast is not available "
+                        f"for the selected time "
+                        f"{selected_time.strftime('%H:%M')} "
+                        f"(required target: {selected_target_time})."
+                    )
+            
                 fig3_tick_vals = day_df["valid_time_ist"]
+            
                 fig3_tick_times = (
                     day_df["valid_time_ist"]
                     .dt.strftime("%H:%M")
