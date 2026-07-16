@@ -343,9 +343,11 @@ else:
     ymax = max(
         day_df["Actual_GHI"].max(),
         day_df["GFS_GHI"].max(),
-        day_df["Daily_Forecast_GHI"].max()
+        day_df["Daily_Forecast_GHI"].max(),
+        day_df["Next_Day_Ahead_Forecast"].max(skipna=True),
+        day_df["Two_Hour_Ahead_Forecast"].max(skipna=True)
     )
-
+    
     ymax = (int(ymax / 100) + 1) * 100
 
     tick_times = day_df["valid_time_ist"].dt.strftime("%H:%M").tolist()
