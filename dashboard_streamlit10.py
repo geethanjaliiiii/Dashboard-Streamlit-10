@@ -358,7 +358,7 @@ else:
     DAILY_FORECAST_FILL = "rgba(242,142,43,0.25)"
     TWO_HOUR_COLOR = "#2CA02C"        # Green
     ACTUAL_COLOR = "#636EFA"          # Blue
-    DAY_AHEAD_COLOR = "#6D4C41"
+    DAY_AHEAD_COLOR = "#7B1FA2"
 
     # =====================================================
     # FIRST ROW: DAILY FORECAST GHI ONLY
@@ -386,7 +386,7 @@ else:
             name=f"Day-Ahead Forecast",
             line=dict(
                 color=DAY_AHEAD_COLOR,
-                width=2.5,
+                width=3,
                 dash="dash"
             ),
             marker=dict(
