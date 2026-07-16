@@ -358,7 +358,7 @@ else:
     DAILY_FORECAST_FILL = "rgba(242,142,43,0.25)"
     TWO_HOUR_COLOR = "#2CA02C"        # Green
     ACTUAL_COLOR = "#636EFA"          # Blue
-    DAY_AHEAD_COLOR = "#9C27B0"
+    DAY_AHEAD_COLOR = "#6A0DAD"
     
     # =====================================================
     # FIRST ROW: DAILY FORECAST GHI ONLY
